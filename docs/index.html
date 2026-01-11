@@ -1,16 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Android AI Handwritten Diary – Demo</title>
-  </head>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Handwritten Diary Demo</title>
 
-  <body>
-    <!-- React mounts here -->
-    <div id="root"></div>
+  <style>
+    body {
+      margin: 0;
+      background: #e7e5df;
+      font-family: serif;
+    }
 
-    <!-- Bootstrap file -->
-    <script type="module" src="./main.tsx"></script>
-  </body>
+    canvas {
+      display: block;
+      margin: 0 auto;
+      background: #fdfbf7;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="paper" width="420" height="800"></canvas>
+
+<script>
+  const canvas = document.getElementById("paper");
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = "#1a237e";
+  ctx.font = "24px cursive";
+
+  let y = 80;
+  const lines = [
+    "Dear Diary,",
+    "",
+    "This is a live web demo.",
+    "Handwriting is rendered",
+    "directly on canvas.",
+  ];
+
+  for (const line of lines) {
+    ctx.fillText(line, 40, y);
+    y += 32;
+  }
+</script>
+
+</body>
 </html>
