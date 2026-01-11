@@ -1,675 +1,286 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Onyx | AI Handwritten Diary</title>
-    <meta name="theme-color" content="#121212">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Onyx | AI Handwritten Diary</title>
+<meta name="theme-color" content="#0a0a0a">
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Homemade+Apple&family=Inter:wght@300;400;500&family=Reenie+Beanie&family=Zeyada&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 
-    <style>
-        /* --- 1. RESET & VARIABLES --- */
-        :root {
-            --bg-app: #0a0a0a;
-            --bg-paper: #161616;
-            --line-ruled: rgba(255, 255, 255, 0.06);
-            --line-margin: rgba(239, 83, 80, 0.15); /* Muted red */
-            
-            --ink-white: #e0e0e0;
-            --ink-gold: #d4af37;
-            --ink-cyan: #4dd0e1;
-            --ink-rose: #f48fb1;
+<style>
+:root {
+  --bg-app:#0a0a0a;
+  --bg-paper:#161616;
+  --line-ruled:rgba(255,255,255,.06);
+  --line-margin:rgba(239,83,80,.15);
+  --ink:#e0e0e0;
+}
 
-            --ui-surface: #252525;
-            --ui-text: #b0b0b0;
-            --ui-accent: #ffffff;
-            
-            --font-ui: 'Inter', sans-serif;
-            --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
-            --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
-        }
+html,body{
+  margin:0;height:100%;
+  background:var(--bg-app);
+  font-family:Inter,sans-serif;
+  overflow:hidden;
+}
 
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+#app{display:flex;flex-direction:column;height:100%}
 
-        body, html {
-            margin: 0; padding: 0;
-            width: 100%; height: 100%;
-            background-color: var(--bg-app);
-            font-family: var(--font-ui);
-            color: var(--ui-text);
-            overflow: hidden; /* App-like fixed viewport */
-        }
+header{
+  height:56px;
+  padding:0 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  font-size:12px;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  background:rgba(10,10,10,.9);
+  border-bottom:1px solid rgba(255,255,255,.05);
+  color:#aaa;
+}
 
-        /* --- 2. LAYOUT & STRUCTURE --- */
-        #app {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            position: relative;
-        }
+main{
+  flex:1;
+  display:flex;
+  justify-content:center;
+  overflow:auto;
+}
 
-        /* Header */
-        header {
-            height: 64px;
-            padding: 0 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(10, 10, 10, 0.9);
-            backdrop-filter: blur(10px);
-            z-index: 50;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
+#paper{
+  position:relative;
+  width:100%;
+  max-width:800px;
+  min-height:100%;
+  background:var(--bg-paper);
+  box-shadow:0 0 50px rgba(0,0,0,.5);
+}
 
-        .header-title {
-            font-size: 14px;
-            font-weight: 500;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: var(--ui-text);
-            opacity: 0.8;
-        }
+canvas{
+  position:absolute;
+  top:0;left:0;
+}
 
-        .header-controls {
-            display: flex;
-            gap: 16px;
-        }
-
-        .icon-btn {
-            background: none;
-            border: none;
-            color: var(--ui-text);
-            padding: 8px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        .icon-btn:active { background: rgba(255,255,255,0.1); color: #fff; }
-
-        /* Main Canvas Area */
-        main {
-            flex: 1;
-            position: relative;
-            background-color: var(--bg-app);
-            display: flex;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        /* The Paper Surface */
-        #notebook-surface {
-            width: 100%;
-            max-width: 800px; /* Tablet width on desktop */
-            height: 100%;
-            background-color: var(--bg-paper);
-            position: relative;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
-            /* Texture via CSS radial gradient fallback */
-            background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.02) 0%, transparent 60%);
-            cursor: text;
-        }
-
-        canvas {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            touch-action: none;
-        }
-        
-        #layer-base { z-index: 1; } /* Lines & Texture */
-        #layer-ink { z-index: 2; }  /* Handwriting */
-
-        /* Invisible Input for Mobile Keyboard */
-        #input-trap {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            opacity: 0;
-            z-index: 10;
-            font-size: 16px; /* Prevent zooming */
-            resize: none;
-            color: transparent;
-            background: transparent;
-            caret-color: transparent;
-        }
-
-        /* --- 3. FLOATING UI (FAB) --- */
-        .fab-wrapper {
-            position: absolute;
-            bottom: 32px; right: 24px;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 16px;
-        }
-
-        .fab-main {
-            width: 64px; height: 64px;
-            border-radius: 20px; /* Android 'Squircle' ish */
-            background: var(--ui-accent);
-            color: #000;
-            border: none;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-            display: flex;
-            align-items: center; justify-content: center;
-            cursor: pointer;
-            transition: transform 0.3s var(--ease-elastic), box-shadow 0.3s;
-        }
-        .fab-main:active { transform: scale(0.9); }
-        .fab-main.active { transform: rotate(45deg); background: #f0f0f0; }
-
-        /* Radial Menu */
-        .fab-menu {
-            position: absolute;
-            bottom: 80px; right: 0;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: flex-end;
-            pointer-events: none;
-        }
-
-        .menu-item {
-            background: var(--ui-surface);
-            padding: 8px 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(255,255,255,0.05);
-            color: var(--ui-text);
-            font-size: 14px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            opacity: 0;
-            transform: translateY(20px) scale(0.9);
-            transition: all 0.3s var(--ease-smooth);
-            cursor: pointer;
-        }
-        .menu-item:active { transform: scale(0.96); background: rgba(255,255,255,0.05); }
-
-        /* Staggered Animation classes */
-        .fab-wrapper.open .fab-menu { pointer-events: auto; }
-        .fab-wrapper.open .menu-item { opacity: 1; transform: translateY(0) scale(1); }
-        .fab-wrapper.open .menu-item:nth-child(1) { transition-delay: 0.05s; }
-        .fab-wrapper.open .menu-item:nth-child(2) { transition-delay: 0.1s; }
-        .fab-wrapper.open .menu-item:nth-child(3) { transition-delay: 0.15s; }
-        .fab-wrapper.open .menu-item:nth-child(4) { transition-delay: 0.2s; }
-
-        /* Colors Dots */
-        .color-dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); }
-
-        /* --- 4. UTILS & ANIMATION --- */
-        #loader {
-            position: fixed; inset: 0;
-            background: var(--bg-app);
-            z-index: 999;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            transition: opacity 0.6s;
-        }
-        .loader-text {
-            font-family: 'Inter', sans-serif;
-            letter-spacing: 4px;
-            font-size: 12px;
-            margin-top: 16px;
-            opacity: 0.5;
-        }
-    </style>
+#input{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  font-size:16px;
+  resize:none;
+  border:none;
+  outline:none;
+}
+</style>
 </head>
+
 <body>
+<div id="app">
+<header>
+  <span>Oct 24</span>
+  <span style="color:#fff">ONYX</span>
+  <span>Journal</span>
+</header>
 
-    <!-- Intro Loader -->
-    <div id="loader">
-        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5">
-            <path d="M12 19l7-7 3 3-7 7-3-3z"></path>
-            <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path>
-            <path d="M2 2l7.586 7.586"></path>
-            <circle cx="11" cy="11" r="2"></circle>
-        </svg>
-        <div class="loader-text">ONYX ENGINE</div>
-    </div>
+<main>
+  <div id="paper">
+    <canvas id="static"></canvas>
+    <canvas id="active"></canvas>
+    <textarea id="input" spellcheck="false"></textarea>
+  </div>
+</main>
+</div>
 
-    <div id="app">
-        <header>
-            <div class="icon-btn" id="date-display">OCT 24</div>
-            <div class="header-title">Journal</div>
-            <div class="header-controls">
-                <button class="icon-btn">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-                </button>
-            </div>
-        </header>
+<script>
+/* ===========================
+   ONYX ENGINE — FINAL FIXED
+   =========================== */
 
-        <main>
-            <div id="notebook-surface">
-                <!-- Static Layer (Lines) -->
-                <canvas id="layer-base"></canvas>
-                <!-- Dynamic Layer (Ink) -->
-                <canvas id="layer-ink"></canvas>
-                <!-- Input Trap -->
-                <textarea id="input-trap" spellcheck="false" autocomplete="off"></textarea>
-            </div>
-        </main>
+const CONFIG={
+  margin:{top:80,left:64,right:24,line:44},
+  font:'Caveat',
+  size:32,
+  ink:'#e0e0e0',
+  speed:24,
+  cursorLerp:.15,
+  jitter:{pos:1.2,rot:.05,size:.08}
+};
 
-        <div class="fab-wrapper" id="fab-wrapper">
-            <div class="fab-menu">
-                <!-- Styles -->
-                <div class="menu-item" onclick="diary.setFont('Caveat')">
-                    <span style="font-family: 'Caveat'; font-size: 18px;">Casual</span>
-                </div>
-                <div class="menu-item" onclick="diary.setFont('Homemade Apple')">
-                    <span style="font-family: 'Homemade Apple'; font-size: 14px;">Classic</span>
-                </div>
-                <div class="menu-item" onclick="diary.setFont('Reenie Beanie')">
-                    <span style="font-family: 'Reenie Beanie'; font-size: 18px;">Rushed</span>
-                </div>
-                <div class="menu-item" onclick="diary.setFont('Zeyada')">
-                    <span style="font-family: 'Zeyada'; font-size: 18px;">Messy</span>
-                </div>
-                
-                <!-- Divider -->
-                <div style="height: 1px; width: 100%; background: rgba(255,255,255,0.1); margin: 4px 0;"></div>
+const rand=s=>{const x=Math.sin(s*9999)*1e4;return x-Math.floor(x)};
+const jitter=(c,i)=>({
+  x:(rand(i)-.5)*CONFIG.jitter.pos*3,
+  y:(rand(i+1)-.5)*CONFIG.jitter.pos*3,
+  r:(rand(i+2)-.5)*CONFIG.jitter.rot,
+  s:1+(rand(i+3)-.5)*CONFIG.jitter.size
+});
 
-                <!-- Colors -->
-                <div class="menu-item" onclick="diary.setInk('#e0e0e0')">
-                    <div class="color-dot" style="background: #e0e0e0;"></div> <span>Chalk</span>
-                </div>
-                <div class="menu-item" onclick="diary.setInk('#d4af37')">
-                    <div class="color-dot" style="background: #d4af37;"></div> <span>Gold</span>
-                </div>
-                <div class="menu-item" onclick="diary.setInk('#4dd0e1')">
-                    <div class="color-dot" style="background: #4dd0e1;"></div> <span>Cyan</span>
-                </div>
-                <div class="menu-item" onclick="diary.setInk('#f48fb1')">
-                    <div class="color-dot" style="background: #f48fb1;"></div> <span>Rose</span>
-                </div>
+class Diary{
+  constructor(){
+    this.paper=document.getElementById('paper');
+    this.cS=document.getElementById('static');
+    this.cA=document.getElementById('active');
+    this.i=document.getElementById('input');
 
-                <!-- Clear -->
-                 <div style="height: 1px; width: 100%; background: rgba(255,255,255,0.1); margin: 4px 0;"></div>
-                <div class="menu-item" onclick="diary.clear()">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path></svg>
-                    <span>Clear Page</span>
-                </div>
-            </div>
+    this.ctxS=this.cS.getContext('2d');
+    this.ctxA=this.cA.getContext('2d');
 
-            <button class="fab-main" id="fab-trigger" onclick="ui.toggleMenu()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
-        </div>
-    </div>
+    this.buf=document.createElement('canvas');
+    this.ctxB=this.buf.getContext('2d');
 
-    <script>
-        /**
-         * ONYX ENGINE
-         * High-performance Canvas Rendering for Handwritten Text
-         */
+    this.text="Hello.\n\nThis is the final Onyx demo.\nSmooth strokes, ink drying, and cursor physics.\n\nType freely.";
+    this.layout=[];
+    this.drawIndex=0;
+    this.timer=0;
 
-        // --- CONSTANTS ---
-        const CONFIG = {
-            margin: { top: 60, left: 60, right: 24, lineHeight: 40 },
-            baseFontSize: 28,
-            cursorSpeed: 0.25, // 0 to 1 lerp factor
-            jitterStrength: {
-                pos: 1.0,  // pixels
-                rot: 0.06, // radians
-                size: 0.08 // percentage
-            }
-        };
+    this.cursor={x:CONFIG.margin.left,y:CONFIG.margin.top,vis:true,blink:0};
 
-        // --- UTILS ---
-        const Utils = {
-            // Seeded random for deterministic rendering (text looks same every redraw)
-            seededRandom: (seed) => {
-                const x = Math.sin(seed * 9999) * 10000;
-                return x - Math.floor(x);
-            },
-            // Get rendering offsets for a specific character index
-            getCharTransform: (char, index) => {
-                const s1 = Utils.seededRandom(index + char.charCodeAt(0));
-                const s2 = Utils.seededRandom(index * 2);
-                const s3 = Utils.seededRandom(index * 3);
-                
-                return {
-                    x: (s1 - 0.5) * CONFIG.jitterStrength.pos * 3,
-                    y: (s2 - 0.5) * CONFIG.jitterStrength.pos * 3,
-                    rot: (s3 - 0.5) * CONFIG.jitterStrength.rot,
-                    scale: 1 + (s1 - 0.5) * CONFIG.jitterStrength.size
-                };
-            }
-        };
+    this.i.value=this.text;
+    this.i.addEventListener('input',e=>this.onInput(e));
+    this.paper.addEventListener('click',()=>this.i.focus());
 
-        // --- UI CONTROLLER ---
-        class UIController {
-            constructor() {
-                this.fabWrapper = document.getElementById('fab-wrapper');
-                this.fabTrigger = document.getElementById('fab-trigger');
-                this.dateDisplay = document.getElementById('date-display');
-                this.menuOpen = false;
+    new ResizeObserver(()=>this.resize()).observe(this.paper);
+    this.resize();
+    requestAnimationFrame(t=>this.loop(t));
+  }
 
-                // Set Date
-                const now = new Date();
-                const month = now.toLocaleString('default', { month: 'short' }).toUpperCase();
-                this.dateDisplay.textContent = `${month} ${now.getDate()}`;
-            }
+  resize(){
+    const r=this.paper.getBoundingClientRect();
+    const dpr=window.devicePixelRatio||1;
+    this.w=r.width;this.h=Math.max(r.height,innerHeight);
 
-            toggleMenu() {
-                this.menuOpen = !this.menuOpen;
-                if (this.menuOpen) {
-                    this.fabWrapper.classList.add('open');
-                    this.fabTrigger.classList.add('active');
-                } else {
-                    this.fabWrapper.classList.remove('open');
-                    this.fabTrigger.classList.remove('active');
-                }
-            }
+    [this.cS,this.cA,this.buf].forEach(c=>{
+      c.width=this.w*dpr;c.height=this.h*dpr;
+      c.style.width=this.w+'px';c.style.height=this.h+'px';
+      c.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+    });
 
-            closeMenu() {
-                if (this.menuOpen) this.toggleMenu();
-            }
+    this.drawPaper();
+    this.drawIndex=0;
+    this.layoutText();
+    this.redrawAll();
+  }
+
+  drawPaper(){
+    const c=this.ctxB;
+    c.clearRect(0,0,this.w,this.h);
+
+    c.strokeStyle=CONFIG.line||'rgba(255,255,255,.06)';
+    for(let y=CONFIG.margin.top;y<this.h;y+=CONFIG.margin.line){
+      c.beginPath();c.moveTo(0,y);c.lineTo(this.w,y);c.stroke();
+    }
+
+    c.strokeStyle='rgba(239,83,80,.15)';
+    c.beginPath();
+    c.moveTo(CONFIG.margin.left-24,0);
+    c.lineTo(CONFIG.margin.left-24,this.h);
+    c.stroke();
+  }
+
+  layoutText(){
+    const ctx=this.ctxB;
+    ctx.font=`${CONFIG.size}px "${CONFIG.font}"`;
+
+    let x=CONFIG.margin.left;
+    let y=CONFIG.margin.top+CONFIG.margin.line*.6;
+    const max=this.w-CONFIG.margin.left-CONFIG.margin.right;
+
+    this.layout=[];
+    let idx=0;
+
+    for(const line of this.text.split('\n')){
+      for(const word of line.split(' ')){
+        const ww=ctx.measureText(word).width;
+        if(x+ww>CONFIG.margin.left+max){x=CONFIG.margin.left;y+=CONFIG.margin.line;}
+        for(const ch of word){
+          const w=ctx.measureText(ch).width;
+          this.layout.push({ch,x,y,w,i:idx++});
+          x+=w;
         }
+        x+=ctx.measureText(' ').width;
+      }
+      x=CONFIG.margin.left;y+=CONFIG.margin.line;
+    }
+  }
 
-        // --- DIARY ENGINE ---
-        class DiaryEngine {
-            constructor() {
-                // DOM Elements
-                this.container = document.getElementById('notebook-surface');
-                this.cBase = document.getElementById('layer-base');
-                this.cInk = document.getElementById('layer-ink');
-                this.input = document.getElementById('input-trap');
-                
-                // Contexts
-                this.ctxBase = this.cBase.getContext('2d');
-                this.ctxInk = this.cInk.getContext('2d');
+  onInput(e){
+    this.text=e.target.value;
+    this.layoutText();
+    this.drawIndex=0;
+    this.redrawAll();
+  }
 
-                // State
-                this.text = "Hello.\n\nThis is a dark mode concept. Try typing on your keyboard to see the handwriting engine in action.\n\nEvery letter is uniquely generated.";
-                this.inkColor = '#e0e0e0';
-                this.fontFamily = 'Caveat';
-                
-                // Cursor Physics
-                this.cursor = {
-                    currentX: CONFIG.margin.left,
-                    currentY: CONFIG.margin.top,
-                    targetX: CONFIG.margin.left,
-                    targetY: CONFIG.margin.top,
-                    visible: true,
-                    lastBlink: 0
-                };
+  redrawAll(){
+    this.drawPaper();
+    for(let i=0;i<this.layout.length;i++) this.drawChar(this.layout[i],false);
+    this.ctxS.drawImage(this.buf,0,0,this.w,this.h);
+    this.snapCursor();
+  }
 
-                // Layout Cache (Positions of all characters)
-                this.charLayout = [];
+  drawChar(item,wet){
+    if(item.ch===' ')return;
+    const ctx=this.ctxB;
+    const j=jitter(item.ch,item.i);
 
-                this.init();
-            }
+    ctx.save();
+    ctx.font=`${CONFIG.size}px "${CONFIG.font}"`;
+    ctx.fillStyle=CONFIG.ink;
+    ctx.globalAlpha=wet?.6:1;
+    ctx.translate(item.x+item.w/2+j.x,item.y+j.y);
+    ctx.rotate(j.r);ctx.scale(j.s,j.s);
+    ctx.fillText(item.ch,-item.w/2,0);
+    ctx.restore();
+  }
 
-            init() {
-                // Resize Observer
-                const resizeObserver = new ResizeObserver(() => this.resize());
-                resizeObserver.observe(this.container);
+  snapCursor(){
+    if(!this.layout.length)return;
+    const l=this.layout[this.layout.length-1];
+    this.cursor.x=l.x+l.w;this.cursor.y=l.y;
+  }
 
-                // Input Listeners
-                this.input.value = this.text;
-                this.input.addEventListener('input', (e) => this.handleInput(e));
-                
-                // Focus Management
-                this.container.addEventListener('click', () => {
-                    this.input.focus();
-                    // Move cursor logic could go here
-                });
+  loop(t){
+    requestAnimationFrame(tt=>this.loop(tt));
+    this.ctxA.clearRect(0,0,this.w,this.h);
 
-                // Start Loop
-                this.resize();
-                this.loop();
-            }
+    if(this.drawIndex<this.layout.length){
+      this.timer+=16;
+      if(this.timer>CONFIG.speed){
+        const item=this.layout[this.drawIndex];
+        this.drawChar(item,true);
+        this.ctxS.drawImage(this.buf,0,0,this.w,this.h);
+        this.cursor.x=item.x+item.w;
+        this.cursor.y=item.y;
+        this.drawIndex++;
+        this.timer=0;
+      }
+    }
 
-            resize() {
-                const rect = this.container.getBoundingClientRect();
-                const dpr = window.devicePixelRatio || 1;
-                
-                // Update Canvas Dimensions
-                [this.cBase, this.cInk].forEach(canvas => {
-                    canvas.width = rect.width * dpr;
-                    canvas.height = rect.height * dpr;
-                    canvas.style.width = `${rect.width}px`;
-                    canvas.style.height = `${rect.height}px`;
-                    const ctx = canvas.getContext('2d');
-                    ctx.scale(dpr, dpr);
-                });
+    const tgt=this.layout[this.drawIndex]||this.layout[this.layout.length-1];
+    if(tgt){
+      this.cursor.x+=((tgt.x+(tgt.w||0))-this.cursor.x)*CONFIG.cursorLerp;
+      this.cursor.y+=(tgt.y-this.cursor.y)*CONFIG.cursorLerp;
+    }
 
-                this.width = rect.width;
-                this.height = rect.height;
+    this.drawCursor();
+  }
 
-                this.drawBaseLayer();
-                this.calculateLayout(); // Recalculate text positions
-            }
+  drawCursor(){
+    const c=this.ctxA;
+    const {x,y}=this.cursor;
+    c.fillStyle=CONFIG.ink;
+    c.beginPath();
+    c.arc(x,y-2,2.5,0,Math.PI*2);
+    c.fill();
+    c.globalAlpha=.5;
+    c.beginPath();
+    c.moveTo(x,y-2);
+    c.lineTo(x+4,y-8);
+    c.stroke();
+    c.globalAlpha=1;
+  }
+}
 
-            // --- 1. BASE LAYER RENDERING (Static) ---
-            drawBaseLayer() {
-                const ctx = this.ctxBase;
-                const w = this.width;
-                const h = this.height;
-
-                ctx.clearRect(0, 0, w, h);
-
-                // Texture Noise (Procedural)
-                ctx.globalAlpha = 0.03;
-                ctx.fillStyle = '#fff';
-                for(let i=0; i<4000; i++) {
-                    ctx.fillRect(Math.random() * w, Math.random() * h, 1.5, 1.5);
-                }
-                ctx.globalAlpha = 1.0;
-
-                // Ruled Lines
-                ctx.beginPath();
-                ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--line-ruled').trim();
-                ctx.lineWidth = 1;
-
-                let y = CONFIG.margin.top;
-                while (y < h) {
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(w, y);
-                    y += CONFIG.margin.lineHeight;
-                }
-                ctx.stroke();
-
-                // Margin Line
-                ctx.beginPath();
-                ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--line-margin').trim();
-                ctx.moveTo(CONFIG.margin.left - 20, 0);
-                ctx.lineTo(CONFIG.margin.left - 20, h);
-                ctx.stroke();
-            }
-
-            // --- 2. LAYOUT CALCULATION (Performance Optimization) ---
-            calculateLayout() {
-                const ctx = this.ctxInk;
-                ctx.font = `${CONFIG.baseFontSize}px "${this.fontFamily}"`;
-                
-                const lines = this.text.split('\n');
-                let cx = CONFIG.margin.left;
-                let cy = CONFIG.margin.top + (CONFIG.margin.lineHeight * 0.6); // Baseline adjust
-                const maxWidth = this.width - CONFIG.margin.left - CONFIG.margin.right;
-
-                this.charLayout = []; // Clear cache
-
-                // Simple Word Wrap Algorithm
-                lines.forEach((lineText, lineIdx) => {
-                    if (lineIdx > 0) {
-                        cy += CONFIG.margin.lineHeight;
-                        cx = CONFIG.margin.left;
-                    }
-
-                    const words = lineText.split(' ');
-                    
-                    words.forEach((word, wordIdx) => {
-                        const wordWidth = ctx.measureText(word).width;
-                        const spaceWidth = ctx.measureText(' ').width;
-
-                        // Check Wrap
-                        if (cx + wordWidth > CONFIG.margin.left + maxWidth) {
-                            cy += CONFIG.margin.lineHeight;
-                            cx = CONFIG.margin.left;
-                        }
-
-                        // Store Char Positions
-                        for (let i = 0; i < word.length; i++) {
-                            const char = word[i];
-                            const charWidth = ctx.measureText(char).width;
-                            
-                            // Save render data for this char
-                            this.charLayout.push({
-                                char,
-                                x: cx,
-                                y: cy,
-                                width: charWidth
-                            });
-                            
-                            cx += charWidth;
-                        }
-
-                        // Space
-                        cx += spaceWidth;
-                        // Add dummy space char to layout for cursor positioning reference? 
-                        // Simplified: We assume next char just jumps.
-                    });
-                });
-
-                // Update Target Cursor to end of text
-                this.cursor.targetX = cx;
-                this.cursor.targetY = cy;
-            }
-
-            // --- 3. INPUT HANDLING ---
-            handleInput(e) {
-                this.text = e.target.value;
-                this.calculateLayout();
-                // Ensure cursor visibility
-                this.cursor.visible = true;
-                this.cursor.lastBlink = Date.now();
-            }
-
-            setFont(font) {
-                this.fontFamily = font;
-                this.calculateLayout(); // Font size/metrics change, so recalc layout
-                ui.closeMenu();
-            }
-
-            setInk(color) {
-                this.inkColor = color;
-                ui.closeMenu();
-            }
-
-            clear() {
-                // Fade out animation via CSS opacity on canvas? 
-                // For now, simple clear
-                this.text = "";
-                this.input.value = "";
-                this.calculateLayout();
-                ui.closeMenu();
-            }
-
-            // --- 4. RENDER LOOP (Dynamic) ---
-            loop() {
-                requestAnimationFrame(() => this.loop());
-
-                const ctx = this.ctxInk;
-                ctx.clearRect(0, 0, this.width, this.height);
-
-                // --- A. Draw Text ---
-                ctx.fillStyle = this.inkColor;
-                ctx.font = `${CONFIG.baseFontSize}px "${this.fontFamily}"`;
-                ctx.textBaseline = 'alphabetic';
-
-                // Batch render characters from pre-calculated layout
-                this.charLayout.forEach((item, index) => {
-                    // Optimization: Culling (Don't draw off-screen)
-                    if (item.y < -50 || item.y > this.height + 50) return;
-
-                    const transform = Utils.getCharTransform(item.char, index);
-
-                    ctx.save();
-                    ctx.translate(
-                        item.x + item.width/2 + transform.x, 
-                        item.y + transform.y
-                    );
-                    ctx.rotate(transform.rot);
-                    ctx.scale(transform.scale, transform.scale);
-                    
-                    // Ink Opacity Jitter
-                    ctx.globalAlpha = 0.85 + (transform.scale * 0.1); 
-                    
-                    ctx.fillText(item.char, -item.width/2, 0);
-                    ctx.restore();
-                });
-
-                // --- B. Draw Cursor ---
-                this.updateCursorPhysics();
-                this.drawCursor(ctx);
-            }
-
-            updateCursorPhysics() {
-                // Lerp towards target
-                const dx = this.cursor.targetX - this.cursor.currentX;
-                const dy = this.cursor.targetY - this.cursor.currentY;
-                
-                this.cursor.currentX += dx * CONFIG.cursorSpeed;
-                this.cursor.currentY += dy * CONFIG.cursorSpeed;
-
-                // Blink
-                if (Date.now() - this.cursor.lastBlink > 800) {
-                    if (Math.abs(dx) < 1) this.cursor.visible = !this.cursor.visible;
-                    else this.cursor.visible = true; // Always visible while moving
-                    this.cursor.lastBlink = Date.now();
-                }
-            }
-
-            drawCursor(ctx) {
-                if (!this.cursor.visible) return;
-                
-                const x = this.cursor.currentX;
-                const y = this.cursor.currentY;
-
-                ctx.save();
-                ctx.fillStyle = this.inkColor;
-                ctx.globalAlpha = 0.5;
-                
-                // Pen Tip shape
-                ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.lineTo(x + 5, y + 5);
-                ctx.lineTo(x + 5, y - 5);
-                ctx.fill();
-
-                // Small Halo
-                ctx.beginPath();
-                ctx.arc(x, y, 2, 0, Math.PI * 2);
-                ctx.fill();
-
-                ctx.restore();
-            }
-        }
-
-        // --- INIT ---
-        const ui = new UIController();
-        let diary;
-
-        // Start when fonts ready to ensure correct measurements
-        document.fonts.ready.then(() => {
-            document.getElementById('loader').style.opacity = '0';
-            setTimeout(() => document.getElementById('loader').remove(), 600);
-            
-            diary = new DiaryEngine();
-        });
-
-    </script>
+document.fonts.ready.then(()=>new Diary());
+</script>
 </body>
 </html>
-
-
