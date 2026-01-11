@@ -1,52 +1,83 @@
 # ✍️ ONYX — AI Handwritten Diary
 
-![Version](https://img.shields.io/badge/version-v1.0-7CFF00?style=for-the-badge)
-![Status](https://img.shields.io/badge/status-active-success?style=for-the-badge)
-![Offline](https://img.shields.io/badge/offline-first-000000?style=for-the-badge)
-![Privacy](https://img.shields.io/badge/privacy-zero_tracking-blue?style=for-the-badge)
-![License](https://img.shields.io/badge/license-MIT-yellow?style=for-the-badge)
+<p align="center">
+  <img src="https://img.shields.io/badge/VERSION-v1.0-7CFF00?style=flat-square"/>
+  <img src="https://img.shields.io/badge/STATUS-ACTIVE-success?style=flat-square"/>
+  <img src="https://img.shields.io/badge/OFFLINE-FIRST-black?style=flat-square"/>
+  <img src="https://img.shields.io/badge/PRIVACY-ZERO_TRACKING-blue?style=flat-square"/>
+  <img src="https://img.shields.io/badge/LICENSE-MIT-yellow?style=flat-square"/>
+</p>
 
-A **dark-mode, offline-first AI handwritten diary engine** that converts typed text into realistic handwriting using a high-performance Canvas rendering system.
-
-Designed for **mobile-first usage**, **zero backend**, and **absolute privacy**.
+<p align="center">
+A dark-mode, offline-first handwritten diary engine that converts typed text into<br/>
+realistic handwriting using a high-performance Canvas renderer.
+</p>
 
 ---
 
-## 🚀 Highlights
+## 🎞️ LIVE PREVIEWS (GIF)
+
+> _Add your GIFs in `/assets/` and update paths_
+
+<p align="center">
+  <img src="./assets/typing.gif" width="240"/>
+  <img src="./assets/stroke.gif" width="240"/>
+  <img src="./assets/cursor.gif" width="240"/>
+</p>
+
+<p align="center">
+  <sub>Typing → Handwriting · Stroke animation · Cursor physics</sub>
+</p>
+
+---
+
+## ⚡ SYSTEM SNAPSHOT
+
+| MODULE | STATUS |
+|------|--------|
+| VERSION | **ONYX v1.0** |
+| DATA | **LOCAL ONLY** |
+| BACKEND | **NONE** |
+| TRACKING | **ZERO** |
+| MODE | **OFFLINE-FIRST** |
+
+---
+
+## 🚀 HIGHLIGHTS
 
 - ✍️ Realistic handwritten text rendering  
 - 🧠 Physics-based pen & cursor motion  
-- 🖋️ Ink jitter, stroke variation & drying effect  
+- 🖋️ Ink jitter, stroke variation & drying  
 - 🌙 Premium dark notebook UI  
 - 📱 Android-optimized, mobile-first  
 - 🔒 100% Offline · No servers · No tracking  
 
 ---
 
-## 🧩 Core Features
+## 🧩 CORE FEATURES
 
 - **Typed → Handwritten Simulation**
 - **Dual-Layer Canvas Engine**
-  - Static layer → paper + dried ink
-  - Active layer → cursor + wet ink
-- **Deterministic handwriting**
+  - Static layer → paper + dried ink  
+  - Active layer → cursor + wet ink  
+- **Deterministic handwriting** (seeded jitter)
 - **High-DPI (DPR) scaling**
 - **Invisible input trap** (native keyboard feel)
-- **60 FPS animation loop**
+- **60 FPS render loop**
 
 ---
 
-## 🖼️ UI & UX
+## 🎨 UI / UX DESIGN
 
 - Dark paper aesthetic  
 - Ruled lines with margin guide  
 - Smooth, distraction-free writing  
-- Touch-friendly interactions  
+- Touch-first interactions  
 - App-like fullscreen experience  
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ SYSTEM ARCHITECTURE
 
 USER ↓ ONYX DIARY ENGINE ↓ Canvas Renderer (Static + Active) ↓ Local Memory (No Cloud)
 
@@ -54,85 +85,68 @@ USER ↓ ONYX DIARY ENGINE ↓ Canvas Renderer (Static + Active) ↓ Local Memor
 
 ---
 
-## ⚙️ Tech Stack
+## ⚙️ TECH STACK
 
-![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)
-![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-323330?logo=javascript&logoColor=F7DF1E)
-![Canvas](https://img.shields.io/badge/Canvas-000000?logo=googlechrome&logoColor=white)
+<p>
+  <img src="https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white"/>
+  <img src="https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white"/>
+  <img src="https://img.shields.io/badge/JavaScript-323330?logo=javascript&logoColor=F7DF1E"/>
+  <img src="https://img.shields.io/badge/Canvas-000000"/>
+</p>
 
 **Fonts**
-- ✍️ Caveat — handwriting
-- 🧠 Inter — UI
+- ✍️ Caveat — handwriting  
+- 🧠 Inter — UI  
 
 ---
 
-## 📁 Project Structure
+## 📁 PROJECT STRUCTURE
 
-/index.html    → Full single-file app /README.md     → Documentation
+/index.html     → Full single-file app /assets/        → GIF previews & media /README.md      → Documentation
 
-> Single-file design ensures **maximum portability** and **GitHub Pages compatibility**.
+Single-file design ensures **maximum portability** and **GitHub Pages compatibility**.
 
 ---
 
-## 🧪 Live Demo
+## 🌐 LIVE DEMO
 
 https://gh0stlung.github.io/Android-ai-handwritten-diary/
 
-No build step required.
-
-
----
-
-🔐 Privacy & Security
-
-  
-
-Works fully offline
-
-No cloud sync
-
-No third-party APIs
-
-No telemetry
-
-
-Your writing never leaves your device.
-
+_No build step. No install._
 
 ---
 
-🛣️ Roadmap
+## 🔐 PRIVACY & SECURITY
 
-📄 Multi-page notebook support
+- ✅ Works fully offline  
+- ✅ No cloud sync  
+- ✅ No backend  
+- ✅ No telemetry  
 
-🖋️ True stroke-path animation
-
-🎨 Multiple handwriting styles
-
-💾 LocalStorage / IndexedDB save
-
-📱 PWA → Android APK
-
-🔐 Optional local encryption
-
-
+Your writing **never leaves your device**.
 
 ---
 
-📜 License
+## 🛣️ ROADMAP
 
-
-
-Released under the MIT License.
-Free to use, modify, and distribute.
-
+- 📄 Multi-page notebook flow  
+- 🖋️ True stroke-path animation  
+- 🎨 Multiple handwriting styles  
+- 💾 LocalStorage / IndexedDB save  
+- 📱 PWA → Android APK  
+- 🔐 Optional local encryption  
 
 ---
 
-🧠 Author
+## 📜 LICENSE
 
-Built as an experimental AI handwriting & UX engine focused on realism, performance, and privacy.
+MIT License — free to use, modify, and distribute.
 
-> “Write like paper. Think like software.”
-ONYX ✍️
+---
+
+<p align="center">
+  <sub>ONYX Engine — Write like paper. Think like software.</sub>
+</p>
+
+
+---
