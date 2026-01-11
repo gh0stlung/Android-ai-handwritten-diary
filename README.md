@@ -1,83 +1,55 @@
 # ✍️ ONYX — AI Handwritten Diary
 
-<p align="center">
-  <img src="https://img.shields.io/badge/VERSION-v1.0-7CFF00?style=flat-square"/>
-  <img src="https://img.shields.io/badge/STATUS-ACTIVE-success?style=flat-square"/>
-  <img src="https://img.shields.io/badge/OFFLINE-FIRST-black?style=flat-square"/>
-  <img src="https://img.shields.io/badge/PRIVACY-ZERO_TRACKING-blue?style=flat-square"/>
-  <img src="https://img.shields.io/badge/LICENSE-MIT-yellow?style=flat-square"/>
-</p>
+![Status](https://img.shields.io/badge/status-active-brightgreen)
+![Offline](https://img.shields.io/badge/offline-first-blue)
+![Privacy](https://img.shields.io/badge/privacy-zero_tracking-success)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
+![Platform](https://img.shields.io/badge/platform-mobile--first-black)
 
-<p align="center">
-A dark-mode, offline-first handwritten diary engine that converts typed text into<br/>
-realistic handwriting using a high-performance Canvas renderer.
-</p>
+A **dark-mode, offline-first AI handwritten diary engine** that converts typed text into realistic handwriting using a high-performance Canvas renderer.
+
+Designed for **mobile**, **privacy**, and **zero backend** usage.
 
 ---
 
-## 🎞️ LIVE PREVIEWS (GIF)
+## 🎬 Live Engine Preview (Placeholder)
 
-> _Add your GIFs in `/assets/` and update paths_
+> Temporary preview GIFs — real engine captures coming soon.
 
-<p align="center">
-  <img src="./assets/typing.gif" width="240"/>
-  <img src="./assets/stroke.gif" width="240"/>
-  <img src="./assets/cursor.gif" width="240"/>
-</p>
+### ✏️ Typing → Handwriting
+![Typing Preview](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExZTNkZ2I1aXJzZzF5aHc2Y2U0M3A1ZTB0ZHFmcmJ4ZXF0dG9zYiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/3o7aD2saalBwwftBIY/giphy.gif)
 
-<p align="center">
-  <sub>Typing → Handwriting · Stroke animation · Cursor physics</sub>
-</p>
+### 🖋️ Stroke & Ink Effect
+![Ink Preview](https://media.giphy.com/media/26ufdipQqU2lhNA4g/giphy.gif)
 
----
-
-## ⚡ SYSTEM SNAPSHOT
-
-| MODULE | STATUS |
-|------|--------|
-| VERSION | **ONYX v1.0** |
-| DATA | **LOCAL ONLY** |
-| BACKEND | **NONE** |
-| TRACKING | **ZERO** |
-| MODE | **OFFLINE-FIRST** |
+### 🎯 Cursor Physics
+![Cursor Preview](https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif)
 
 ---
 
-## 🚀 HIGHLIGHTS
-
-- ✍️ Realistic handwritten text rendering  
-- 🧠 Physics-based pen & cursor motion  
-- 🖋️ Ink jitter, stroke variation & drying  
-- 🌙 Premium dark notebook UI  
-- 📱 Android-optimized, mobile-first  
-- 🔒 100% Offline · No servers · No tracking  
-
----
-
-## 🧩 CORE FEATURES
-
-- **Typed → Handwritten Simulation**
-- **Dual-Layer Canvas Engine**
-  - Static layer → paper + dried ink  
-  - Active layer → cursor + wet ink  
-- **Deterministic handwriting** (seeded jitter)
-- **High-DPI (DPR) scaling**
-- **Invisible input trap** (native keyboard feel)
-- **60 FPS render loop**
+## ✨ Highlights
+- Realistic handwritten text rendering
+- Physics-based pen & cursor motion
+- Ink jitter, stroke variation & drying
+- Premium notebook UI (dark paper)
+- Android-optimized, mobile-first
+- 100% offline — no servers, no tracking
 
 ---
 
-## 🎨 UI / UX DESIGN
-
-- Dark paper aesthetic  
-- Ruled lines with margin guide  
-- Smooth, distraction-free writing  
-- Touch-first interactions  
-- App-like fullscreen experience  
+## 🧠 Core Features
+- **Typed → Handwritten simulation**
+- **Dual-layer Canvas engine**
+  - Static layer → dried ink
+  - Active layer → wet ink & cursor
+- Deterministic handwriting (stable redraws)
+- High-DPI (Retina) support
+- Invisible input trap (native keyboard feel)
+- Smooth 60 FPS animation loop
 
 ---
 
-## 🏗️ SYSTEM ARCHITECTURE
+## 🧱 System Architecture
 
 USER ↓ ONYX DIARY ENGINE ↓ Canvas Renderer (Static + Active) ↓ Local Memory (No Cloud)
 
@@ -100,53 +72,39 @@ USER ↓ ONYX DIARY ENGINE ↓ Canvas Renderer (Static + Active) ↓ Local Memor
 
 ---
 
-## 📁 PROJECT STRUCTURE
+## 📂 Project Structure
 
-/index.html     → Full single-file app /assets/        → GIF previews & media /README.md      → Documentation
-
-Single-file design ensures **maximum portability** and **GitHub Pages compatibility**.
+/ ├── index.html     # Single-file app ├── assets/        # GIF previews (coming soon) ├── README.md └── LICENSE
 
 ---
 
-## 🌐 LIVE DEMO
+## 🌐 Live Demo
+🔗 https://ghostlung.github.io/Android-ai-handwritten-diary/
 
-https://gh0stlung.github.io/Android-ai-handwritten-diary/
-
-_No build step. No install._
-
----
-
-## 🔐 PRIVACY & SECURITY
-
-- ✅ Works fully offline  
-- ✅ No cloud sync  
-- ✅ No backend  
-- ✅ No telemetry  
-
-Your writing **never leaves your device**.
+_No build step required._
 
 ---
 
-## 🛣️ ROADMAP
-
-- 📄 Multi-page notebook flow  
-- 🖋️ True stroke-path animation  
-- 🎨 Multiple handwriting styles  
-- 💾 LocalStorage / IndexedDB save  
-- 📱 PWA → Android APK  
-- 🔐 Optional local encryption  
+## 🔒 Privacy & Security
+- Fully offline
+- No cloud sync
+- No tracking
+- No telemetry
 
 ---
 
-## 📜 LICENSE
+> 🚧 Placeholder previews will be replaced with **real engine GIFs** once recording is finalized.
 
-MIT License — free to use, modify, and distribute.
 
 ---
 
-<p align="center">
-  <sub>ONYX Engine — Write like paper. Think like software.</sub>
-</p>
+🔥 WHAT THIS DOES FOR YOU
+
+✅ Looks professional
+✅ No broken images
+✅ Tight spacing (no empty gaps)
+✅ Matches your dark Onyx style
+✅ Ready for GitHub Pages & stars ⭐
 
 
 ---
