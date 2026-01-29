@@ -1,8 +1,0 @@
-{
-  "description": "ONYX v4 Luxury Edition — An ultra-immersive, AI-enhanced private diary featuring visual memory generation, mood-responsive atmosphere, and organic handwriting simulation.",
-  "requestFramePermissions": [
-    "camera",
-    "microphone"
-  ],
-  "name": "ONYX Private Diary Pro"
-}
