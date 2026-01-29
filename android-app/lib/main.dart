@@ -1,284 +1,508 @@
-import 'dart:math';
-import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-// --- MAIN ENTRY POINT ---
-void main() {
-  runApp(const DiaryApp());
-}
-
-class DiaryApp extends StatelessWidget {
-  const DiaryApp({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Nostalgia Diary',
-      theme: ThemeData(
-        useMaterial3: true,
-        colorSchemeSeed: const Color(0xFF3E2723), // Vintage brown seed
-        scaffoldBackgroundColor: const Color(0xFFFDFBF7), // Paper color
-      ),
-      home: const DiaryPage(),
-    );
-  }
-}
-
-// --- CORE UI PAGE ---
-class DiaryPage extends StatefulWidget {
-  const DiaryPage({super.key});
-
-  @override
-  State<DiaryPage> createState() => _DiaryPageState();
-}
-
-class _DiaryPageState extends State<DiaryPage> {
-  // The buffer holding the raw text
-  final TextEditingController _textController = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
-  
-  // Configuration State
-  Color _inkColor = const Color(0xFF1A237E); // Midnight Blue
-  double _fontSize = 24.0;
-  
-  @override
-  void initState() {
-    super.initState();
-    // Placeholder text
-    _textController.text = "Dear Diary,\n\nThis is the native Flutter implementation of the engine. Notice how the text renders as strokes on the canvas.\n\nThe input field is hidden, but active.";
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // Transparent app bar to blend with paper
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.black54),
-          onPressed: () {},
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.calendar_today, color: Colors.black54),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings, color: Colors.black54),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          // 1. PAPER LAYER (Visuals)
-          Positioned.fill(
-            child: GestureDetector(
-              onTap: () => _focusNode.requestFocus(),
-              child: CustomPaint(
-                painter: DiaryPaperPainter(),
-                foregroundPainter: HandwritingPainter(
-                  text: _textController.text,
-                  inkColor: _inkColor,
-                  fontSize: _fontSize,
-                ),
-                child: Container(),
-              ),
-            ),
-          ),
-          
-          // 2. INPUT LAYER (Invisible but Functional)
-          // We use a TextField positioned off-screen or with invisible text
-          // to capture keyboard events and IME updates.
-          Positioned(
-            left: -9999, 
-            child: SizedBox(
-              width: 100,
-              child: TextField(
-                controller: _textController,
-                focusNode: _focusNode,
-                maxLines: null,
-                keyboardType: TextInputType.multiline,
-                onChanged: (val) {
-                  // Trigger rebuild of the CustomPainter
-                  setState(() {}); 
-                },
-              ),
-            ),
-          ),
-          
-          // 3. FLOATING TOOLS
-          Positioned(
-            bottom: 32,
-            right: 32,
-            child: FloatingActionButton(
-              backgroundColor: const Color(0xFF212121),
-              onPressed: () {
-                // Toggle ink color for demo
-                setState(() {
-                  _inkColor = _inkColor == const Color(0xFF1A237E) 
-                      ? const Color(0xFFB71C1C) 
-                      : const Color(0xFF1A237E);
-                });
-              },
-              child: const Icon(Icons.edit, color: Colors.white),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-}
-
-// --- PAINTER 1: THE PAPER (Background) ---
-class DiaryPaperPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = const Color(0xFF90A4AE).withOpacity(0.3) // Light blue lines
-      ..strokeWidth = 1.0;
-
-    final marginPaint = Paint()
-      ..color = const Color(0xFFEF5350).withOpacity(0.2) // Red margin
-      ..strokeWidth = 1.5;
-
-    const double lineHeight = 32.0;
-    const double topMargin = 80.0;
-    const double leftMargin = 60.0;
-
-    // Draw horizontal lines
-    for (double y = topMargin; y < size.height; y += lineHeight) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-
-    // Draw vertical margin
-    canvas.drawLine(
-      const Offset(leftMargin, 0), 
-      const Offset(leftMargin, size.height), 
-      marginPaint
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}
-
-// --- PAINTER 2: THE HANDWRITING (AI Engine) ---
-class HandwritingPainter extends CustomPainter {
-  final String text;
-  final Color inkColor;
-  final double fontSize;
-
-  HandwritingPainter({
-    required this.text,
-    required this.inkColor,
-    required this.fontSize,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    // Configuration
-    const double lineHeight = 32.0;
-    const double topMargin = 80.0;
-    const double leftMargin = 70.0; // Slightly right of the red line
-    const double rightMargin = 20.0;
-    final double maxWidth = size.width - leftMargin - rightMargin;
-
-    // We use TextPainter to measure and draw text. 
-    // In a real "AI" implementation, you would use path metrics 
-    // to draw strokes, but for this level of implementation, 
-    // manipulating individual characters via TextPainter is efficient and effective.
-
-    // Style using a handwriting font (Google Fonts must be initialized in pubspec.yaml)
-    // Fallback to standard if not loaded
-    final textStyle = GoogleFonts.indieFlower(
-      fontSize: fontSize,
-      color: inkColor,
-    );
-
-    double cursorX = leftMargin;
-    double cursorY = topMargin - (lineHeight * 0.35); // Align baseline
-
-    // Split text into paragraphs
-    final paragraphs = text.split('\n');
-
-    // Pseudo-random generator seeded by character index
-    // This ensures that typing "a" always looks like that specific "a" 
-    // until it's deleted, preventing the whole page from shimmering.
-    int charCounter = 0;
-    final Random random = Random(42);
-
-    for (int p = 0; p < paragraphs.length; p++) {
-      if (p > 0) {
-        // New paragraph -> New line
-        cursorY += lineHeight;
-        cursorX = leftMargin;
-      }
-
-      final words = paragraphs[p].split(' ');
-
-      for (var word in words) {
-        // Measure word to check for wrap
-        final wordSpan = TextSpan(text: word, style: textStyle);
-        final wordPainter = TextPainter(
-          text: wordSpan,
-          textDirection: TextDirection.ltr,
-        );
-        wordPainter.layout();
-
-        if (cursorX + wordPainter.width > leftMargin + maxWidth) {
-          cursorY += lineHeight;
-          cursorX = leftMargin;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ONYX — AI Handwritten Diary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;500&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --onyx-bg: #0a0a0a;
+            --onyx-paper: #111111;
+            --onyx-ink: #e0e0ff;
+            --onyx-ink-wet: #ffffff;
+            --onyx-accent: #4f46e5;
+            --onyx-line: rgba(255, 255, 255, 0.04);
+            --onyx-margin: rgba(255, 100, 100, 0.08);
+            --font-ui: 'Inter', sans-serif;
+            --font-hand: 'Caveat', cursive;
         }
 
-        // Draw character by character for "AI" jitter
-        for (int i = 0; i < word.length; i++) {
-          final char = word[i];
-          final charSpan = TextSpan(text: char, style: textStyle);
-          final charPainter = TextPainter(
-            text: charSpan,
-            textDirection: TextDirection.ltr,
-          );
-          charPainter.layout();
-
-          // Calculate Jitter
-          // We use sine waves based on the counter to create deterministic noise
-          final double jitterY = sin(charCounter * 12.3) * 1.5; 
-          final double rotate = cos(charCounter * 7.8) * 0.08; 
-          final double scale = 1.0 + (sin(charCounter * 9.9) * 0.05);
-
-          canvas.save();
-          // Move to position + jitter
-          canvas.translate(cursorX, cursorY + jitterY);
-          canvas.rotate(rotate);
-          canvas.scale(scale);
-          
-          charPainter.paint(canvas, Offset.zero);
-          
-          canvas.restore();
-
-          // Advance cursor
-          cursorX += charPainter.width;
-          charCounter++;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        // Space
-        final spacePainter = TextPainter(
-          text: TextSpan(text: ' ', style: textStyle),
-          textDirection: TextDirection.ltr,
-        )..layout();
+        body {
+            background-color: var(--onyx-bg);
+            color: #ffffff;
+            font-family: var(--font-ui);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Paper Texture Overlay */
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.03;
+            z-index: 100;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3BaseFilter id='filter'%3BfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23filter)'/%3E%3C/svg%3E");
+        }
+
+        /* Header UI */
+        header {
+            padding: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 50;
+            background: linear-gradient(to bottom, var(--onyx-bg), transparent);
+        }
+
+        .logo {
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--onyx-accent);
+            border-radius: 50%;
+            box-shadow: 0 0 10px var(--onyx-accent);
+        }
+
+        .status-badge {
+            font-size: 0.7rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.3rem 0.6rem;
+            border-radius: 100px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Diary Container */
+        main {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            cursor: text;
+        }
+
+        #notebook-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+
+        /* Invisible Input */
+        #hidden-input {
+            position: fixed;
+            top: -100px;
+            left: -100px;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Footer UI */
+        footer {
+            padding: 1rem 1.5rem;
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.3);
+            text-align: center;
+            letter-spacing: 0.05em;
+            background: linear-gradient(to top, var(--onyx-bg), transparent);
+            z-index: 50;
+        }
+
+        /* Interactive Elements */
+        .controls {
+            position: fixed;
+            bottom: 3rem;
+            right: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            z-index: 60;
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(30, 30, 30, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .btn-icon:hover {
+            background: rgba(50, 50, 50, 0.9);
+            transform: translateY(-2px);
+        }
+
+        .btn-icon svg {
+            width: 18px;
+            height: 18px;
+            opacity: 0.7;
+        }
+
+        /* Floating Pen Tip indicator */
+        #pen-tip {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: var(--onyx-ink-wet);
+            border-radius: 50%;
+            box-shadow: 0 0 12px 2px var(--onyx-accent);
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Typing Hint */
+        #hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: rgba(255, 255, 255, 0.15);
+            font-size: 0.9rem;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            text-align: center;
+            width: 100%;
+        }
+
+        @media (max-width: 600px) {
+            .logo span { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="noise"></div>
+    <div id="pen-tip"></div>
+
+    <header>
+        <div class="logo">Onyx <span>&mdash; Private Journal</span></div>
+        <div class="status-badge">E2E Encrypted • Offline</div>
+    </header>
+
+    <main id="capture-zone">
+        <div id="hint">Tap anywhere to write your thoughts...</div>
+        <div id="notebook-container">
+            <!-- Layers: 1. Static/Dried 2. Active/Wet -->
+            <canvas id="static-canvas"></canvas>
+            <canvas id="active-canvas"></canvas>
+        </div>
+        <textarea id="hidden-input" autocomplete="off" spellcheck="false"></textarea>
+    </main>
+
+    <div class="controls">
+        <button class="btn-icon" id="btn-clear" title="Clear Page">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2M10 11v6M14 11v6"/></svg>
+        </button>
+        <button class="btn-icon" id="btn-sound" title="Toggle Sound">
+            <svg id="sound-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </button>
+    </div>
+
+    <footer>
+        ONYX — Offline. Private. No Cloud.
+    </footer>
+
+    <script>
+        /**
+         * ONYX — Core Engine
+         */
+        const config = {
+            lineHeight: 42,
+            leftPadding: 60,
+            rightPadding: 40,
+            topPadding: 80,
+            fontSize: 28,
+            inkColor: 'rgba(224, 224, 255, 0.85)',
+            wetInkColor: 'rgba(255, 255, 255, 1)',
+            handwritingSpeed: 120, // ms per char
+            jitterScale: 0.6,
+            rotationScale: 0.02,
+        };
+
+        const state = {
+            text: localStorage.getItem('onyx_journal') || "",
+            renderedCount: 0,
+            lastRenderedTime: 0,
+            cursor: { x: config.leftPadding, y: config.topPadding },
+            queue: [],
+            isTyping: false,
+            soundEnabled: false,
+            canvasWidth: 0,
+            canvasHeight: 0,
+            pixelRatio: window.devicePixelRatio || 1
+        };
+
+        const staticCanvas = document.getElementById('static-canvas');
+        const activeCanvas = document.getElementById('active-canvas');
+        const sCtx = staticCanvas.getContext('2d');
+        const aCtx = activeCanvas.getContext('2d');
+        const hiddenInput = document.getElementById('hidden-input');
+        const container = document.getElementById('notebook-container');
+        const penTip = document.getElementById('pen-tip');
+        const hint = document.getElementById('hint');
+
+        // Layout Calculation
+        function calculateLayout(text) {
+            const words = text.split('');
+            let x = config.leftPadding;
+            let y = config.topPadding;
+            const maxWidth = state.canvasWidth - config.rightPadding;
+            
+            return words.map((char, i) => {
+                const metrics = sCtx.measureText(char);
+                const charWidth = metrics.width + (Math.random() * 2 - 1);
+
+                if (char === '\n' || x + charWidth > maxWidth) {
+                    x = config.leftPadding;
+                    y += config.lineHeight;
+                }
+
+                const res = {
+                    char,
+                    x,
+                    y,
+                    width: charWidth,
+                    // Deterministic randomness based on index and character code
+                    rotation: (Math.sin(i * 13 + char.charCodeAt(0)) * config.rotationScale),
+                    jitterX: (Math.cos(i * 7) * config.jitterScale),
+                    jitterY: (Math.sin(i * 11) * config.jitterScale)
+                };
+
+                if (char !== '\n') x += charWidth;
+                return res;
+            });
+        }
+
+        function resize() {
+            state.canvasWidth = window.innerWidth;
+            state.canvasHeight = Math.max(window.innerHeight, (calculateLayout(state.text).pop()?.y || 0) + 200);
+            
+            [staticCanvas, activeCanvas].forEach(canvas => {
+                canvas.width = state.canvasWidth * state.pixelRatio;
+                canvas.height = state.canvasHeight * state.pixelRatio;
+                canvas.style.width = `${state.canvasWidth}px`;
+                canvas.style.height = `${state.canvasHeight}px`;
+            });
+
+            sCtx.scale(state.pixelRatio, state.pixelRatio);
+            aCtx.scale(state.pixelRatio, state.pixelRatio);
+            
+            sCtx.font = `${config.fontSize}px ${getComputedStyle(document.body).getPropertyValue('--font-hand')}`;
+            aCtx.font = sCtx.font;
+
+            drawPaperDecorations();
+            redrawStatic();
+        }
+
+        function drawPaperDecorations() {
+            sCtx.save();
+            // Vertical Margin Line
+            sCtx.beginPath();
+            sCtx.strokeStyle = 'rgba(255, 100, 100, 0.08)';
+            sCtx.moveTo(45, 0);
+            sCtx.lineTo(45, state.canvasHeight);
+            sCtx.stroke();
+
+            // Horizontal Rule Lines
+            sCtx.beginPath();
+            sCtx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+            for (let y = config.topPadding + 8; y < state.canvasHeight; y += config.lineHeight) {
+                sCtx.moveTo(0, y);
+                sCtx.lineTo(state.canvasWidth, y);
+            }
+            sCtx.stroke();
+            sCtx.restore();
+        }
+
+        function drawChar(ctx, item, color, opacity = 1) {
+            if (item.char === '\n') return;
+            ctx.save();
+            ctx.globalAlpha = opacity;
+            ctx.fillStyle = color;
+            ctx.translate(item.x + item.jitterX, item.y + item.jitterY);
+            ctx.rotate(item.rotation);
+            ctx.fillText(item.char, 0, 0);
+            ctx.restore();
+        }
+
+        function redrawStatic() {
+            sCtx.clearRect(0, 0, state.canvasWidth, state.canvasHeight);
+            drawPaperDecorations();
+            const layout = calculateLayout(state.text);
+            // Only draw characters that are already "dried"
+            layout.slice(0, state.renderedCount).forEach(item => {
+                drawChar(sCtx, item, config.inkColor);
+            });
+        }
+
+        function update() {
+            const now = Date.now();
+            const layout = calculateLayout(state.text);
+
+            if (state.renderedCount < layout.length) {
+                if (now - state.lastRenderedTime > config.handwritingSpeed) {
+                    const item = layout[state.renderedCount];
+                    
+                    // Trigger sound if enabled
+                    if (state.soundEnabled && item.char !== ' ' && item.char !== '\n') {
+                        playPenSound();
+                    }
+
+                    // Move virtual pen tip
+                    state.cursor = { x: item.x, y: item.y };
+                    penTip.style.transform = `translate(${item.x}px, ${item.y - 15}px)`;
+                    penTip.style.opacity = '1';
+
+                    // Animate "wet ink" logic
+                    state.renderedCount++;
+                    state.lastRenderedTime = now;
+
+                    // Ensure we scroll to the bottom if typing
+                    if (state.isTyping) {
+                        const targetScroll = Math.max(0, item.y - window.innerHeight / 2);
+                        if (Math.abs(container.scrollTop - targetScroll) > 50) {
+                            container.scrollTop = targetScroll;
+                        }
+                    }
+
+                    // If it was the last character, draw to static eventually
+                    // To keep it performant, we only redraw static when we add a char
+                    redrawStatic();
+                }
+            } else {
+                penTip.style.opacity = '0';
+            }
+
+            // Active Layer Animation (Wet Ink pulse / cursor)
+            aCtx.clearRect(0, 0, state.canvasWidth, state.canvasHeight);
+            if (state.renderedCount > 0 && state.renderedCount <= layout.length) {
+                const lastItem = layout[state.renderedCount - 1];
+                // Pulsing wet ink effect for the newest character
+                const pulse = (Math.sin(now / 150) * 0.2) + 0.8;
+                drawChar(aCtx, lastItem, config.wetInkColor, pulse);
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        // Sound Engine (Subtle synthesized scratch)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playPenSound() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(Math.random() * 200 + 400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.05);
+            gain.gain.setValueAtTime(0.02, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.05);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+        }
+
+        // Event Listeners
+        window.addEventListener('resize', resize);
         
-        cursorX += spacePainter.width;
-        charCounter++;
-      }
-    }
-  }
+        document.getElementById('capture-zone').addEventListener('click', () => {
+            hiddenInput.focus();
+            hint.style.opacity = '0';
+        });
 
-  @override
-  bool shouldRepaint(covariant HandwritingPainter oldDelegate) {
-    return oldDelegate.text != text || 
-           oldDelegate.inkColor != inkColor;
-  }
-}
+        hiddenInput.addEventListener('input', (e) => {
+            const oldLength = state.text.length;
+            state.text = e.target.value;
+            localStorage.setItem('onyx_journal', state.text);
+            state.isTyping = true;
+
+            // Handle backspace or deletions
+            if (state.text.length < oldLength) {
+                state.renderedCount = Math.min(state.renderedCount, state.text.length);
+                redrawStatic();
+            }
+
+            // Adjust height if needed
+            const layout = calculateLayout(state.text);
+            const lastY = layout.pop()?.y || 0;
+            if (lastY + 300 > state.canvasHeight) {
+                resize();
+            }
+        });
+
+        document.getElementById('btn-clear').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (confirm('Burn these pages? This cannot be undone.')) {
+                state.text = "";
+                state.renderedCount = 0;
+                hiddenInput.value = "";
+                localStorage.removeItem('onyx_journal');
+                redrawStatic();
+                hint.style.opacity = '1';
+                container.scrollTop = 0;
+            }
+        });
+
+        document.getElementById('btn-sound').addEventListener('click', (e) => {
+            e.stopPropagation();
+            state.soundEnabled = !state.soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (state.soundEnabled) {
+                icon.innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5zM19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/>';
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            } else {
+                icon.innerHTML = '<path d="M11 5L6 9H2v6h4l5 4V5zM23 9l-6 6M17 9l6 6"/>';
+            }
+        });
+
+        // Initialize
+        function init() {
+            hiddenInput.value = state.text;
+            if (state.text.length > 0) {
+                hint.style.opacity = '0';
+                // Initially show existing text instantly or fast
+                state.renderedCount = state.text.length;
+            }
+            resize();
+            update();
+        }
+
+        // Handle font loading before starting
+        document.fonts.ready.then(init);
+
+    </script>
+</body>
+</html>
