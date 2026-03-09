@@ -103,8 +103,7 @@ Expect **frequent updates**.
 ---
 
 ## 🌐 Live Demo
-🔗 https://ghostlung.github.io/Android-ai-handwritten-diary/
-
+🔗 https://gh0stlung.github.io/Android-ai-handwritten-diary/
 _No build step required._
 
 ---
